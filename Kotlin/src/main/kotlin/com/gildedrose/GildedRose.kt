@@ -1,72 +1,58 @@
 package com.gildedrose
 
-class GildedRose(var items: Array<Item>) {
-
+class GildedRose(private var items: Array<Item>) {
     /**
      * Invoked at the end of each day. Lowers the sellIn property of all items and updates the quality as needed.
      */
     fun updateQuality() {
         items.forEach { item ->
-            // "Sulfuras", being a legendary item, never decreases in Quality and never has to be sold.
-            if (item.name == "Sulfuras, Hand of Ragnaros") {
-                return
-            }
+            when (ItemType.getType(item)) {
+                // "Sulfuras" never decreases in Quality and never has to be sold.
+                ItemType.Sulfuras -> return@forEach
 
-            // Increase the Quality of "Aged Brie" and "Backstage passes" and decrease the Quality of other items.
-            if (item.name != "Aged Brie" && item.name != "Backstage passes to a TAFKAL80ETC concert") {
-                // The Quality of an item is never negative.
-                if (item.quality > 0) {
-                    item.quality--
+                // At the end of each day our system lowers the quality by one.
+                // Once the sell by date has passed, Quality degrades twice as fast.
+                ItemType.Normal -> {
+                    when {
+                        item.sellIn > 0 -> item.quality--
+                        else -> item.quality = item.quality - 2
+                    }
                 }
 
-                // "Conjured" items degrade in Quality twice as fast as normal items
-                if (item.name.startsWith("Conjured ") && item.quality > 0) {
-                    item.quality--
+                // "Conjured" items degrade in Quality twice as fast as normal items.
+                ItemType.Conjured -> {
+                    when {
+                        item.sellIn > 0 -> item.quality = item.quality - 2
+                        else -> item.quality = item.quality - 4
+                    }
                 }
-            } else {
-                // The Quality of "Aged Brie" and "Backstage passes" is never above 50.
-                if (item.quality < 50) {
-                    item.quality++
 
-                    if (item.name == "Backstage passes to a TAFKAL80ETC concert") {
-                        // Quality of "Backstage passes" increases by 2 when there are 10 days or less remaining.
-                        if (item.sellIn < 11 && item.quality < 50) {
-                            item.quality++
-                        }
+                // "Aged Brie" actually increases in Quality the older it gets.
+                ItemType.AgedBrie -> {
+                    when {
+                        item.sellIn > 0 -> item.quality++
+                        else -> item.quality = item.quality + 2 // note: this is not stated in the specification
+                    }
+                }
 
-                        // Quality of "Backstage passes" increases by 3 when there are 5 days or less remaining.
-                        if (item.sellIn < 6 && item.quality < 50) {
-                            item.quality++
-                        }
+                // "Backstage passes", like aged brie, increases in Quality as its SellIn value decreases;
+                // Quality increases by 2 when there are 10 days or less and by 3 when there are 5 days or less
+                // but Quality drops to 0 after the concert.
+                ItemType.BackstagePass -> {
+                    when {
+                        item.sellIn > 10 -> item.quality++
+                        item.sellIn > 5 -> item.quality = item.quality + 2
+                        item.sellIn > 0 -> item.quality = item.quality + 3
+                        else -> item.quality = 0
                     }
                 }
             }
+
+            // The Quality of an item is never negative and never more than 50.
+            item.quality = item.quality.coerceIn(0, 50)
 
             // Decrease the sell by date.
             item.sellIn--
-
-            // Once the sell by date has passed, Quality decreases or increases twice as fast.
-            if (item.sellIn < 0) {
-                if (item.name != "Aged Brie") {
-                    if (item.name != "Backstage passes to a TAFKAL80ETC concert") {
-                        if (item.quality > 0) {
-                            item.quality--
-                        }
-
-                        // "Conjured" items degrade in Quality twice as fast as normal items
-                        if (item.name.startsWith("Conjured ") && item.quality > 0) {
-                            item.quality--
-                        }
-                    } else {
-                        // Quality of "Backstage passes" drops to 0 after the concert
-                        item.quality = 0
-                    }
-                } else {
-                    if (item.quality < 50) {
-                        item.quality++
-                    }
-                }
-            }
         }
     }
 }
