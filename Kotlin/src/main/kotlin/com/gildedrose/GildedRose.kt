@@ -18,6 +18,11 @@ class GildedRose(var items: Array<Item>) {
                 if (item.quality > 0) {
                     item.quality--
                 }
+
+                // "Conjured" items degrade in Quality twice as fast as normal items
+                if (item.name.startsWith("Conjured ") && item.quality > 0) {
+                    item.quality--
+                }
             } else {
                 // The Quality of "Aged Brie" and "Backstage passes" is never above 50.
                 if (item.quality < 50) {
@@ -45,6 +50,11 @@ class GildedRose(var items: Array<Item>) {
                 if (item.name != "Aged Brie") {
                     if (item.name != "Backstage passes to a TAFKAL80ETC concert") {
                         if (item.quality > 0) {
+                            item.quality--
+                        }
+
+                        // "Conjured" items degrade in Quality twice as fast as normal items
+                        if (item.name.startsWith("Conjured ") && item.quality > 0) {
                             item.quality--
                         }
                     } else {

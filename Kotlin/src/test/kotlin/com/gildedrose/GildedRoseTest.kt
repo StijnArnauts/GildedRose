@@ -18,6 +18,18 @@ internal class GildedRoseTest {
     }
 
     @Test
+    fun testConjuredItem() {
+        val item = Item("Conjured item", 3, 12)
+        assertItem(item, listOf(
+                ItemAssertions(elapsedDays = 1, expectedSellIn = 2, expectedQuality = 10),
+                ItemAssertions(elapsedDays = 2, expectedSellIn = 1, expectedQuality = 8),
+                ItemAssertions(elapsedDays = 3, expectedSellIn = 0, expectedQuality = 6),
+                ItemAssertions(elapsedDays = 4, expectedSellIn = -1, expectedQuality = 2),
+                ItemAssertions(elapsedDays = 5, expectedSellIn = -2, expectedQuality = 0),
+        ))
+    }
+
+    @Test
     fun testAgedBrie() {
         val item = Item("Aged Brie", 5, 3)
         assertItem(item, listOf(
